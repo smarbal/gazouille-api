@@ -1,2 +1,2 @@
 # gazouille-api
-NodeJS API for a social networkn named gazouille. School project.
+NodeJS API for a social network named gazouille. School project.
