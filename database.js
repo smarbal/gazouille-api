@@ -1,7 +1,11 @@
 // This class is a wrapper for database connection. It centeralizes generic CRUD operations.
 // Here, we are implementing the Database class with Singleton design pattern
+
+const { user } = require("firebase-functions/v1/auth");
+
 //  Singleton is a design pattern where we create only a single instance (or object) from a class
 require("firebase/auth");
+
 class Database {
     constructor() {
       if (this.instance) return this.instance; // This is the key idea of implementing singleton. Return the same instance (i.e. the one that has already been created before)
@@ -14,7 +18,7 @@ class Database {
       // Since the functions and firestore run on the same server,
       //  we can simply use default credential.
       // However, if your app run different location, you need to create a JSON Firebase credentials
-      var serviceAccount = require("/home/marbal/Programming/WebDev/mobile_api/serviceAccountKey.json");
+      var serviceAccount = require("./serviceAccountKey.json");
 
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
@@ -61,7 +65,7 @@ class Database {
       const doc = this.firestore.collection(collection).doc(id);
       const result = await doc.get();
   
-      if (!result.exists) return null; // Record not found
+      //if (!result.exists) return null; // Record not found
   
       await doc.set(document);
   
@@ -82,7 +86,7 @@ class Database {
 
     async create_user(email,username,password, full_name){
       //Firebase documentation is wrong and says to use getAuth() but that's for frontend
-      this.auth.createUser({
+      return this.auth.createUser({
         email: email,
         username: username,
         password: password,
@@ -98,34 +102,51 @@ class Database {
       });
       }
     
-      async verify_token(){
-        // idToken comes from the client app
-        this.auth.verifyIdToken(idToken)
-          .then((decodedToken) => {
-            const uid = decodedToken.uid;
-            return uid 
-          })
-          .catch((error) => {
-            console.log("Error verifying token")
-          });
-      }
+    async verify_token(idToken){
+      // idToken comes from the client app
+      this.auth.verifyIdToken(idToken)
+        .then((decodedToken) => {
+          const uid = decodedToken.uid;
+          return uid 
+        })
+        .catch((error) => {
+          console.log("Error verifying token")
+        });
+    }
 
-      isAuthorized( uid, token_uid, allowSameUser) {
+    isAuthorized( uid, token_uid, allowSameUser) {
+    
+          if (allowSameUser && uid && token_uid === uid)
+              return next();
+    
+          /*if (!role)
+              return res.status(403).send();
+    
+          if (opts.hasRole.includes(role))
+              return next();
+          */
+          return res.status(403).send();
       
-            if (allowSameUser && uid && token_uid === uid)
-                return next();
+    }
+
+    async get_user(token){
+      const uid = await this.verify_token(token)
+      return this.auth.getUser(uid);
+
+    }
+
+    async add_to_array(collection, doc , array, value){
+
+      const docRef = db.collection(collection).doc(doc);
+
+      const added = await washingtonRef.update({
+        array: FieldValue.arrayUnion(value)
+      });
       
-            /*if (!role)
-                return res.status(403).send();
-      
-            if (opts.hasRole.includes(role))
-                return next();
-            */
-            return res.status(403).send();
-        
-     }
+
+    }
      
-  }
+  } 
   
   module.exports = new Database();
   

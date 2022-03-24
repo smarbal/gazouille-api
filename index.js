@@ -81,30 +81,49 @@ app.post('/register', async function (req, res, next) {
     const password = req.body.password;
     const full_name = req.body.full_name;
 
-    const auth = db.create_user(email,username,password,full_name) //Returns the uid of the user
+    const auth = await db.create_user(email,username,password,full_name);
+
+
+      
+    //Returns the uid of the user
 
     const user = { username: username,
                     email:email,
                     full_name:full_name,
-                    uid : auth
+                    following: [username],
+                    posts: []
     };
 
-    const result = await db.create("users", user);
-    user.id = result.id;
+    const result = await db.set("users", username, user);
 
-
-    return res.json(user);
+    return res.json(result);
   });
 
   
 app.post('newpost',async function (req, res, next) {
+  const token = req.body.token
+  const content = req.body.content
+  //const uid = req.body.uid
+  const user = db.get_user(token)
 
+  //db.isAuthorized(uid, token_uid, true);
+
+  const post = { content : content,
+                 likes: "", 
+                 user: user.username 
+  }
+
+  const result = await db.create("posts", post);
+  db.add_to_array(users, user.username, posts, result.id)    // add the post id to the user's posts, so it's easier to fetch in the database
+  return res.json(post)
 
 });
 
 
 
-  module.exports = app;
+
+
+module.exports = app;
   
 
 app.listen(8080, () => {
