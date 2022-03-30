@@ -52,7 +52,6 @@ app.post('/login', function (req, res, next) {
 
 
 app.post('/register', async function (req, res, next) {
-    console.log(req.body);
     if (!req.body.email) return res.status(400).json({error: 'missing email'});
     if (!req.body.password) return res.status(400).json({error: 'missing password'});
     

@@ -23,3 +23,6 @@ The `database.js` file contains the database calls with basic CRUD operations an
 The `index.js` file contains the server initialisation and the different routes for the HTTP requests. 
 
 The API documentation can be found [here](https://app.swaggerhub.com/apis/smarbal/gazouille_API/1.0.0).
+
+
+For most of the API calls, the post requests will need an authorisation token from which the backend will decrypt the user that makes the call. 
