@@ -124,9 +124,9 @@ app.post('/unlike', async function (req, res, next) {
 
 app.post('/follow', async function (req, res, next) {
   const token = req.body.token
-  const post = req.body.post
+  const follow_user = req.body.username
+
   const user = db.get_user(token)
-  const follow_user = req.body.follow
 
 
   result = db.add_to_array('user', user.username, 'following', follow_user)
@@ -137,9 +137,8 @@ app.post('/follow', async function (req, res, next) {
 
 app.post('/unfollow', async function (req, res, next) {
   const token = req.body.token
-  const post = req.body.post
+  const follow_user = req.body.username
   const user = db.get_user(token)
-  const follow_user = req.body.follow
 
 
   result = db.remove_from_array('user', user.username, 'following', follow_user)
