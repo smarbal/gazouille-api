@@ -3,6 +3,8 @@
 
 const { user } = require("firebase-functions/v1/auth");
 
+const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
+
 //  Singleton is a design pattern where we create only a single instance (or object) from a class
 require("firebase/auth");
 
@@ -137,16 +139,29 @@ class Database {
 
     async add_to_array(collection, doc , array, value){
 
-      const docRef = db.collection(collection).doc(doc);
+      const docRef = this.firestore.collection(collection).doc(doc);
 
-      const added = await washingtonRef.update({
-        array: FieldValue.arrayUnion(value)
+      const added = await docRef.update({
+        [array]: FieldValue.arrayUnion(value)
+      });
+      
+
+    }
+
+    async remove_from_array(collection, doc , array, value){
+
+      const docRef = this.firestore.collection(collection).doc(doc);
+
+      docRef.update({
+        [array]: FieldValue.arrayRemove(value)
       });
       
 
     }
      
   } 
+
+  
   
   module.exports = new Database();
   

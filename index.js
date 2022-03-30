@@ -14,30 +14,6 @@ const db = require("./database");
 
 app.use(express.json()) //Pour parser du json
 
-
-
-app.get("/", (req, res, next) =>
-    res.json({ message: "Firebase function service is working" })
-);
-app.get("/todos", (req, res, next) =>
-    res.json({ message: "Get a list of todos" })
-);
-
-app.get("/newuser/:name", async (req, res, next) => {
-    const name = req.params.name;
-    const user = { name: name };
-    const result = await db.create("users", user);
-    user.id = result.id;
-    return res.json(user);
-});
-
-app.get("/deleteuser/:id", async (req, res, next) => {
-    const userId = req.params.id;
-    const result = await db.delete("users", userId);
-    console.log(result);
-    return res.json(userId);
-});
-
 exports.api = functions.https.onRequest(app);
 
 // To handle "Function Timeout" exception
@@ -45,6 +21,10 @@ exports.functionsTimeOut = functions.runWith({
     timeoutSeconds: 300,
 });
 
+
+app.get("/", (req, res, next) =>
+    res.json({ message: "Firebase function service is working" })
+);
 
 app.post('/login', function (req, res, next) {
     if (!req.body.email) return res.status(400).json({error: 'missing email'});
@@ -100,12 +80,11 @@ app.post('/register', async function (req, res, next) {
   });
 
   
-app.post('newpost',async function (req, res, next) {
+app.post('/newpost',async function (req, res, next) {  //takes the tokenId and the post content as parameters
   const token = req.body.token
   const content = req.body.content
-  //const uid = req.body.uid
   const user = db.get_user(token)
-
+  //const user = req.body.user //while client isn't implemented, can't have token
   //db.isAuthorized(uid, token_uid, true);
 
   const post = { content : content,
@@ -114,12 +93,61 @@ app.post('newpost',async function (req, res, next) {
   }
 
   const result = await db.create("posts", post);
-  db.add_to_array(users, user.username, posts, result.id)    // add the post id to the user's posts, so it's easier to fetch in the database
+  
+  db.add_to_array('users', user.username, "posts", result.id)  //user.username  // add the post id to the user's posts, so it's easier to fetch in the database
   return res.json(post)
 
 });
 
+app.post('/like', async function (req, res, next) {
+  const token = req.body.token
+  const post = req.body.post
+  const user = db.get_user(token)
 
+
+  result = db.add_to_array('posts', post, 'likes', user.username)
+
+  return res.status(200).json({Succes: user.username + 'liked post ' + post});
+
+});
+
+app.post('/unlike', async function (req, res, next) {
+  const token = req.body.token
+  const post = req.body.post
+  const user = db.get_user(token)
+
+
+  result = db.remove_from_array('posts', post, 'likes', user.username)
+
+  return res.status(200).json({Succes: user.username + 'unliked post ' + post});
+
+});
+
+app.post('/follow', async function (req, res, next) {
+  const token = req.body.token
+  const post = req.body.post
+  const user = db.get_user(token)
+  const follow_user = req.body.follow
+
+
+  result = db.add_to_array('user', user.username, 'following', follow_user)
+
+  return res.status(200).json({Succes: user.username + 'unliked post ' + post});
+
+});
+
+app.post('/unfollow', async function (req, res, next) {
+  const token = req.body.token
+  const post = req.body.post
+  const user = db.get_user(token)
+  const follow_user = req.body.follow
+
+
+  result = db.remove_from_array('user', user.username, 'following', follow_user)
+
+  return res.status(200).json({Succes: user.username + 'unliked post ' + post});
+
+});
 
 
 
