@@ -62,7 +62,16 @@ class Database {
       doc.id = result.id;
       return doc;
     }
+    
+    async get_where(collection, id) {
+      const result = await this.firestore.collection(collection).doc(id).get();
+      if (!result.exists) return null; // Record not found
   
+      const doc = result.data();
+      doc.id = result.id;
+      return doc;
+    }
+
     async set(collection, id, document) {
       const doc = this.firestore.collection(collection).doc(id);
       const result = await doc.get();

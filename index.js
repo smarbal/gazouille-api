@@ -88,7 +88,8 @@ app.post('/newpost',async function (req, res, next) {  //takes the tokenId and t
 
   const post = { content : content,
                  likes: "", 
-                 user: user.username 
+                 user: user.username,
+                 timestamp: Date.now()
   }
 
   const result = await db.create("posts", post);
@@ -148,6 +149,31 @@ app.post('/unfollow', async function (req, res, next) {
 });
 
 
+app.get('/posts', async function (req, res, next) {
+
+  const username = req.query.username
+
+  const doc = await db.get('users',username)
+  following = doc.following
+
+  var all_posts = []
+  /* Fetch every post of the followed users and append them in a list. 
+     Could have used the 'in' query method of Firestore but would have been limited to 10 users
+  */
+  following.forEach(async function(user, index, array) {
+    posts_snapshot = await db.firestore.collection('posts').where('user', '==', user).get();  // Maybe add a date limitation ? : .where('timestamp', '>=', Date.now() - 86400 // one week ago)
+    posts_snapshot.forEach(doc => {
+      all_posts.push(doc.data());
+    });
+    if (index == array.length - 1){
+      const sorted = all_posts.sort((a, b) => b.timestamp - a.timestamp)
+      return res.status(200).json(sorted)
+
+    }
+  });
+  
+  
+});
 
 module.exports = app;
   
