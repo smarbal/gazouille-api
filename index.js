@@ -175,6 +175,15 @@ app.get('/posts', async function (req, res, next) {
   
 });
 
+app.get('/user', async function (req, res, next) {
+
+  const username = req.query.username
+
+  const doc = await db.get('users',username)
+  return res.status(200).json(doc)
+
+});
+
 module.exports = app;
   
 
